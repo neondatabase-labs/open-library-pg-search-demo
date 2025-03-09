@@ -1,4 +1,4 @@
-import SearchInterface from "@/components/search-interface"
+import SearchInterface from "@/components/search-interface";
 
 export default function Home() {
   return (
@@ -6,6 +6,5 @@ export default function Home() {
       <h1 className="text-3xl font-bold mb-8 text-center">Database Search</h1>
       <SearchInterface />
     </main>
-  )
+  );
 }
-

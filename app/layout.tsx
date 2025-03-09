@@ -1,28 +1,26 @@
-import type React from "react"
-import type { Metadata } from "next"
-import { Inter } from "next/font/google"
-import "./globals.css"
+import { Toaster } from "@/components/ui/toaster";
+import { cn } from "@/lib/utils";
+import { Inter } from "next/font/google";
+import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"] })
-
-export const metadata: Metadata = {
-  title: "Database Search App",
-  description: "Search across multiple database tables",
-    generator: 'v0.dev'
-}
+const fontSans = Inter({
+  subsets: ["latin"],
+  variable: "--font-sans",
+});
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode
+  children: React.ReactNode;
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body
+        className={cn(fontSans.variable, "min-h-lvh w-full px-2 font-sans")}
+      >
+        {children}
+        <Toaster />
+      </body>
     </html>
-  )
+  );
 }
-
-
-
-import './globals.css'
