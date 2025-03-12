@@ -38,7 +38,13 @@ export default function SearchInterface() {
         <div className="flex flex-col gap-4 p-6 sm:flex-row">
           <div className="relative flex-1">
             <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-            <Input type="default" className="pl-10" value={searchQuery} placeholder="Search database..." onChange={(e) => setSearchQuery(e.target.value)} />
+            <Input
+              type="default"
+              value={searchQuery}
+              placeholder="Search database..."
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="border-gray-600 bg-transparent pl-10 text-white placeholder-gray-400 focus:outline focus:outline-white"
+            />
           </div>
         </div>
       </div>
