@@ -33,9 +33,12 @@ export default function ({ query, table }: { query: string; table: string }) {
 
         const data = await response.json()
         const tmpResults = [...data[0]]
-        setResults(await enrichResultsWithAuthors(tmpResults))
+        setResults(tmpResults) // Set results without authors first
         setRowsTotal(data[1][0]['estimate'])
         setSearchTime(data[2])
+
+        // Now enrich results with authors
+        enrichResultsWithAuthors(tmpResults).then((res) => setResults(res))
       } catch (err) {
         console.error('Search error:', err)
         setError('Failed to fetch results. Please try again.')
