@@ -36,27 +36,29 @@ export default function SearchResults({ query, table }: { query: string; table: 
         const data = await response.json()
         const tmp = [...data[0]]
         setResults(tmp)
-        tmp.forEach((i: SearchResult, idx: number) => {
-          const authorsPromises = i.data.authors.map((k: { key: string }) => {
-            return fetch(`/api/authors?query=${encodeURIComponent(k.key.replace('/authors/', ''))}`)
+        tmp?.forEach((i: SearchResult, idx: number) => {
+          const authorsPromises = i.data.authors?.map((k: { key: string }) => {
+            return fetch(`/api/authors?query=${k.key.replace('/authors/', '')}`)
               .then((response) => response.json())
               .then((res) => ({
                 key: res.name,
               }))
           })
-          Promise.all(authorsPromises).then((authorsResults) => {
-            setResults((tmpResult) => {
-              const deepResult = [...tmpResult]
-              deepResult[idx] = {
-                ...tmpResult[idx],
-                data: {
-                  ...tmpResult[idx]['data'],
-                  authors: authorsResults,
-                },
-              }
-              return deepResult
+          if (Array.isArray(authorsPromises)) {
+            Promise.all(authorsPromises).then((authorsResults) => {
+              setResults((tmpResult) => {
+                const deepResult = [...tmpResult]
+                deepResult[idx] = {
+                  ...tmpResult[idx],
+                  data: {
+                    ...(tmpResult[idx]['data'] || {}),
+                    authors: authorsResults,
+                  },
+                }
+                return deepResult
+              })
             })
-          })
+          }
         })
         setRowsTotal(data[1][0]['estimate'])
         setSearchTime(data[2])
@@ -120,9 +122,9 @@ export default function SearchResults({ query, table }: { query: string; table: 
           {results.map((result, idx) => (
             <Card key={idx} className="w-full max-w-[300px] border-hidden bg-transparent">
               <CardContent className="space-y-3">
-                <img loading="lazy" id={`img_${result.data.key.replaceAll('/', '')}`} className="h-[300px] w-[200px] animate-pulse bg-gray-100 object-cover object-left" />
-                <h3 className="text-lg font-bold">{result.data.title}</h3>
-                <p className="text-sm text-gray-600">
+                <img loading="lazy" id={`img_${result.data.key.replaceAll('/', '')}`} className="h-[300px] w-[200px] animate-pulse bg-gray-200 object-cover object-left" />
+                <h3 className="text-xl font-bold text-white">{result.data.title}</h3>
+                <p className="text-base text-gray-300">
                   {result.data.authors?.map((author: { key: string }, idx: number) => (
                     <span key={`${author.key}_${idx}_${Math.random()}`}>
                       {author.key}
@@ -130,11 +132,21 @@ export default function SearchResults({ query, table }: { query: string; table: 
                     </span>
                   ))}
                 </p>
-                <p className="text-sm text-gray-500">
-                  Published by {result.publishers?.join(', ')} in {result.publish_date}
-                </p>
-                <p className="text-sm text-gray-500">Genres: {result.genres?.join(', ')}</p>
-                <p className="text-sm text-gray-500">Subjects: {result.subjects?.join(', ')}</p>
+                {result.data.publishers && (
+                  <p className="text-base text-gray-400">
+                    Published by <span className="text-gray-300">{result.data.publishers?.join(', ')}</span> in <span className="text-gray-300">{result.data.publish_date}</span>
+                  </p>
+                )}
+                {result.data.genres && (
+                  <p className="text-base text-gray-400">
+                    Genres: <span className="text-gray-300">{result.data.genres?.join(', ')}</span>
+                  </p>
+                )}
+                {result.data.subjects && (
+                  <p className="text-base text-gray-400">
+                    Subjects: <span className="text-gray-300">{result.data.subjects?.join(', ')}</span>
+                  </p>
+                )}
               </CardContent>
             </Card>
           ))}
