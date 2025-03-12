@@ -13,94 +13,111 @@ export default function SearchResults({ query, table }: { query: string; table: 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [results, setResults] = useState<SearchResult[]>([])
-  const [offset, setOffset] = useState(0) // State variable for pagination
-  const [rowsTotal, setRowsTotal] = useState<string | number>('0') // State variable for total rows
-  const [searchTime, setSearchTime] = useState<string | number>('0') // State variable for search time
+  const [offset, setOffset] = useState(0)
+  const [rowsTotal, setRowsTotal] = useState<string | number>('0')
+  const [searchTime, setSearchTime] = useState<string | number>('0')
 
   useEffect(() => {
-    async function fetchResults() {
+    const fetchResults = async () => {
       setLoading(true)
       setError(null)
+
       if (!query) {
-        setResults([])
-        setLoading(false)
-        setRowsTotal('0') // Reset rows total if no query
-        setSearchTime('0') // Reset search time if no query
+        resetResults()
         return
       }
+
       try {
-        const response = await fetch(
-          `/api/search?query=${encodeURIComponent(query)}&table=${encodeURIComponent(table)}&offset=${offset}`, // Include offset in the request
-        )
+        const response = await fetch(`/api/search?query=${encodeURIComponent(query)}&table=${encodeURIComponent(table)}&offset=${offset}`)
         if (!response.ok) throw new Error(`Error: ${response.status}`)
+
         const data = await response.json()
-        const tmp = [...data[0]]
-        setResults(tmp)
-        tmp?.forEach((i: SearchResult, idx: number) => {
-          const authorsPromises = i.data.authors?.map((k: { key: string }) => {
-            return fetch(`/api/authors?query=${k.key.replace('/authors/', '')}`)
-              .then((response) => response.json())
-              .then((res) => ({
-                key: res.name,
-              }))
-          })
-          if (Array.isArray(authorsPromises)) {
-            Promise.all(authorsPromises).then((authorsResults) => {
-              setResults((tmpResult) => {
-                const deepResult = [...tmpResult]
-                deepResult[idx] = {
-                  ...tmpResult[idx],
-                  data: {
-                    ...(tmpResult[idx]['data'] || {}),
-                    authors: authorsResults,
-                  },
-                }
-                return deepResult
-              })
-            })
-          }
-        })
+        const tmpResults = [...data[0]]
+        setResults(await enrichResultsWithAuthors(tmpResults))
         setRowsTotal(data[1][0]['estimate'])
         setSearchTime(data[2])
-        setLoading(false)
       } catch (err) {
         console.error('Search error:', err)
         setError('Failed to fetch results. Please try again.')
-        setResults([])
-        setRowsTotal('0') // Reset rows total on error
-        setSearchTime('0') // Reset search time on error
+        resetResults()
+      } finally {
         setLoading(false)
       }
     }
-    fetchResults()
-  }, [query, table, offset]) // Add offset to the dependency array
 
-  const drawFallabck = (k: SearchResult) => {
+    fetchResults()
+  }, [query, table, offset])
+
+  const resetResults = () => {
+    setResults([])
+    setRowsTotal('0')
+    setSearchTime('0')
+  }
+
+  const enrichResultsWithAuthors = async (results: SearchResult[]) => {
+    const enrichedResults = await Promise.all(
+      results.map(async (result) => {
+        const authors = await fetchAuthors(result.data.authors)
+        return {
+          ...result,
+          data: {
+            ...result.data,
+            authors,
+          },
+        }
+      }),
+    )
+    return enrichedResults
+  }
+
+  const fetchAuthors = async (authors: { key: string }[] | undefined) => {
+    if (!authors) return []
+    const authorPromises = authors.map(async (author) => {
+      const response = await fetch(`/api/authors?query=${author.key.replace('/authors/', '')}`)
+      const res = await response.json()
+      return { key: res.name }
+    })
+    return Promise.all(authorPromises)
+  }
+
+  const drawFallback = (result: SearchResult) => {
     const bookDiv = document.createElement('div')
-    bookDiv.innerHTML = `<span class="text-balance text-center text-gray-400 border border-gray-400 w-full py-8 px-1">${k.data.title}</span>`
+    bookDiv.innerHTML = `<span class="text-balance text-center text-gray-400 border border-gray-400 w-full py-8 px-1">${result.data.title}</span>`
     bookDiv.className = 'w-[200px] h-[300px] bg-gray-100 flex flex-col items-center justify-center px-2'
-    document.querySelector(`#img_${k.data.key.replaceAll('/', '')}`)?.replaceWith(bookDiv)
+    document.querySelector(`#img_${result.data.key.replaceAll('/', '')}`)?.replaceWith(bookDiv)
   }
 
   useEffect(() => {
-    results.forEach((k) => {
-      if (k?.data?.isbn_13?.[0]) {
-        fetch(`https://covers.openlibrary.org/b/isbn/${k.data.isbn_13[0]}-L.jpg`, {
-          redirect: 'follow',
-        }).then((response) => {
-          if (response.status === 200) {
-            if (response.headers.get('Content-Type') !== 'image/jpeg') {
-              drawFallabck(k)
-            } else
-              response.blob().then((blob) => {
-                document.querySelector(`#img_${k.data.key.replaceAll('/', '')}`)?.setAttribute('src', URL.createObjectURL(blob))
-                document.querySelector(`#img_${k.data.key.replaceAll('/', '')}`)?.classList.remove('animate-pulse')
-              })
-          }
-        })
-      } else drawFallabck(k)
+    results.forEach((result) => {
+      if (result?.data?.isbn_13?.[0]) {
+        fetchCoverImage(result)
+      } else {
+        drawFallback(result)
+      }
     })
   }, [results])
+
+  const fetchCoverImage = (result: SearchResult) => {
+    fetch(`https://covers.openlibrary.org/b/isbn/${result.data.isbn_13[0]}-L.jpg`, { redirect: 'follow' })
+      .then((response) => {
+        if (response.ok) {
+          if (response.headers.get('Content-Type') !== 'image/jpeg') {
+            drawFallback(result)
+          } else {
+            return response.blob().then((blob) => {
+              const imgElement = document.querySelector(`#img_${result.data.key.replaceAll('/', '')}`)
+              if (imgElement) {
+                imgElement.setAttribute('src', URL.createObjectURL(blob))
+                imgElement.classList.remove('animate-pulse')
+              }
+            })
+          }
+        } else {
+          drawFallback(result)
+        }
+      })
+      .catch(() => drawFallback(result))
+  }
 
   return (
     <>
@@ -126,7 +143,7 @@ export default function SearchResults({ query, table }: { query: string; table: 
                 <h3 className="text-xl font-bold text-white">{result.data.title}</h3>
                 <p className="text-base text-gray-300">
                   {result.data.authors?.map((author: { key: string }, idx: number) => (
-                    <span key={`${author.key}_${idx}_${Math.random()}`}>
+                    <span key={`${author.key}_${idx}`}>
                       {author.key}
                       {idx !== result.data.authors.length - 1 && ', '}
                     </span>
