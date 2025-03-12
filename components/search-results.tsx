@@ -1,6 +1,6 @@
 'use client'
 
-import { SearchResultSkeleton } from '@/components/search-result-skeleton'
+import SearchResultSkeleton from '@/components/search-result-skeleton'
 import { Card, CardContent } from '@/components/ui/card'
 import { useEffect, useState } from 'react'
 
@@ -9,7 +9,7 @@ type SearchResult = {
   [key: string]: any
 }
 
-export default function SearchResults({ query, table }: { query: string; table: string }) {
+export default function ({ query, table }: { query: string; table: string }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [results, setResults] = useState<SearchResult[]>([])
@@ -112,16 +112,14 @@ export default function SearchResults({ query, table }: { query: string; table: 
               }
             })
           }
-        } else {
-          drawFallback(result)
-        }
+        } else drawFallback(result)
       })
       .catch(() => drawFallback(result))
   }
 
   return (
     <>
-      <div className="flex flex-col space-y-3 p-6">
+      <div className="flex flex-col space-y-3 px-6">
         <h2 className="text-xl font-semibold text-white">Results ({loading ? '...' : results.length})</h2>
         <div className="text-sm text-gray-300">Total rows in table: {!loading ? new Intl.NumberFormat('en-US').format(Number(rowsTotal)) : '...'}</div>
         <div className="text-sm text-gray-300">Search time: {!loading ? Number(searchTime).toFixed(2) : '...'} ms</div>
