@@ -9,11 +9,11 @@ type SearchResult = {
   [key: string]: any
 }
 
-export default function ({ query, table }: { query: string; table: string }) {
+export default function ({ query }: { query: string }) {
+  const [offset, setOffset] = useState(0)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [results, setResults] = useState<SearchResult[]>([])
-  const [offset, setOffset] = useState(0)
   const [rowsTotal, setRowsTotal] = useState<string | number>('0')
   const [searchTime, setSearchTime] = useState<string | number>('0')
 
@@ -28,7 +28,7 @@ export default function ({ query, table }: { query: string; table: string }) {
       }
 
       try {
-        const response = await fetch(`/api/search?query=${encodeURIComponent(query)}&table=${encodeURIComponent(table)}&offset=${offset}`)
+        const response = await fetch(`/api/search?query=${encodeURIComponent(query)}&offset=${offset}`)
         if (!response.ok) throw new Error(`Error: ${response.status}`)
 
         const data = await response.json()
@@ -49,7 +49,7 @@ export default function ({ query, table }: { query: string; table: string }) {
     }
 
     fetchResults()
-  }, [query, table, offset])
+  }, [query, offset])
 
   const resetResults = () => {
     setResults([])

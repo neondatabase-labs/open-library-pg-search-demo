@@ -11,26 +11,16 @@ const THROTTLE_DELAY = 300 // milliseconds
 export default function SearchInterface() {
   const router = useRouter()
   const searchParams = useSearchParams()
-
-  const initialQuery = searchParams.get('query') || ''
-  const initialTable = searchParams.get('table') || 'editions'
-
+  const initialQuery = searchParams.get('query') || 'magic'
   const [searchQuery, setSearchQuery] = useState(initialQuery)
-  const [selectedTable, setSelectedTable] = useState(initialTable)
-  const [isSearching, setIsSearching] = useState(false)
 
   useEffect(() => {
     const params = new URLSearchParams()
     if (searchQuery) params.set('query', searchQuery)
-    params.set('table', selectedTable)
-    const handleSearch = () => {
-      setIsSearching(true)
-      router.push(`?${params.toString()}`)
-      setTimeout(() => setIsSearching(false), 100)
-    }
+    const handleSearch = () => router.push(`?${params.toString()}`)
     const handler = setTimeout(handleSearch, THROTTLE_DELAY)
     return () => clearTimeout(handler)
-  }, [searchQuery, selectedTable, router])
+  }, [searchQuery, router])
 
   return (
     <div className="space-y-6">
@@ -48,7 +38,7 @@ export default function SearchInterface() {
           </div>
         </div>
       </div>
-      <SearchResults query={searchParams.get('query') || ''} table={searchParams.get('table') || 'authors'} />
+      <SearchResults query={searchParams.get('query') || ''} />
     </div>
   )
 }
