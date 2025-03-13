@@ -32,7 +32,7 @@ export default function SearchInterface() {
             <Input
               type="default"
               value={searchQuery}
-              placeholder="Search database..."
+              placeholder="Search editions..."
               onChange={(e) => setSearchQuery(e.target.value)}
               className="border-gray-600 bg-transparent pl-10 text-white placeholder-gray-400 focus:outline focus:outline-white"
             />

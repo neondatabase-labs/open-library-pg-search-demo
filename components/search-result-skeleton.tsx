@@ -2,7 +2,7 @@ import { Card, CardContent } from '@/components/ui/card'
 
 export default function () {
   return (
-    <Card className="w-full max-w-[300px] border-hidden bg-transparent">
+    <Card className="w-full max-w-[220px] border-hidden bg-transparent">
       <CardContent className="flex flex-col p-4">
         <img className="h-[300px] w-[200px] animate-pulse bg-white/10 object-cover" />
         <h3 className="mt-2 h-6 w-[200px] animate-pulse rounded bg-white/20" />

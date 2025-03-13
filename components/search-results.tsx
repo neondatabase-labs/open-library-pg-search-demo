@@ -129,16 +129,16 @@ export default function ({ query }: { query: string }) {
       </div>
       {loading ? (
         <div className="space-y-4">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          <div className="flex flex-row flex-wrap gap-2">
             {Array.from({ length: 12 }).map((_, i) => (
               <SearchResultSkeleton key={i} />
             ))}
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+        <div className="flex flex-row flex-wrap gap-2">
           {results.map((result, idx) => (
-            <Card key={idx} className="w-full max-w-[300px] border-hidden bg-transparent">
+            <Card key={idx} className="w-full max-w-[220px] border-hidden bg-transparent">
               <CardContent className="space-y-3">
                 <img loading="lazy" id={`img_${result.data.key.replaceAll('/', '')}`} className="h-[300px] w-[200px] animate-pulse bg-gray-200 object-cover object-left" />
                 <h3 className="text-xl font-bold text-white">{result.data.title}</h3>
