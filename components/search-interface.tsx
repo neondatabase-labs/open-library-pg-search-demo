@@ -17,6 +17,7 @@ export default function SearchInterface() {
   useEffect(() => {
     const params = new URLSearchParams()
     if (searchQuery) params.set('query', searchQuery)
+    else params.set('query', 'magic')
     const handleSearch = () => router.push(`?${params.toString()}`)
     const handler = setTimeout(handleSearch, THROTTLE_DELAY)
     return () => clearTimeout(handler)
