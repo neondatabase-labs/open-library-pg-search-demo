@@ -143,7 +143,7 @@ export default function SearchResults({ query, offset, setOffset }: { query: str
                   id={`img_${result.data.key.replaceAll('/', '')}`}
                   className="h-[300px] w-[200px] max-w-full animate-pulse bg-gray-200 object-cover object-left"
                 />
-                <a target="_blank" className="text-sm text-gray-400 hover:underline" href={`https://openlibrary.org/${result.data.key}`}>
+                <a target="_blank" className="text-sm text-gray-400 hover:underline" href={`https://openlibrary.org${result.data.key}`}>
                   View in Open Library &#x2197;
                 </a>
                 <h3 className="mt-2 text-xl font-bold text-white">{result.data.title}</h3>
