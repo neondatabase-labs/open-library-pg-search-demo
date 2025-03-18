@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
   const results = await Promise.all([
     (async () => {
       const startTime = performance.now()
-      const result = await sql(`select data from editions where key @@@ paradedb.match('data.title', $1) order by paradedb.score(key) limit 12 offset ${offset};`, [query.toLowerCase()])
+      const result = await sql(`select data from editions where key @@@ paradedb.match('data.title', $1) limit 12 offset ${offset};`, [query.toLowerCase()])
       const endTime = performance.now()
       return { data: result, time: endTime - startTime }
     })(),
