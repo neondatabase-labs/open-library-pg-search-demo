@@ -6,13 +6,18 @@ const sql = neon(process.env.DATABASE_URL)
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
+  const order = searchParams.get('order')
   const query = searchParams.get('query')
   const offset = searchParams.get('offset')
+  let orderBy: string = ''
   if (!query) return NextResponse.json({ error: 'Missing query parameter' }, { status: 400 })
+  try {
+    if (Number(order) === 1) orderBy = ' order by paradedb.score(key) desc'
+  } catch (e) {}
   const results = await Promise.all([
     (async () => {
       const startTime = performance.now()
-      const result = await sql(`select data from editions where key @@@ paradedb.match('data.title', $1) limit 12 offset ${offset};`, [query.toLowerCase()])
+      const result = await sql(`select data from editions where key @@@ paradedb.match('data.title', $1)${orderBy} limit 12 offset ${offset};`, [query.toLowerCase()])
       const endTime = performance.now()
       return { data: result, time: endTime - startTime }
     })(),

@@ -17,6 +17,7 @@ export default function SearchResults({ query, offset, setOffset }: { query: str
   const [rowsTotal, setRowsTotal] = useState<string | number>('0')
   const [searchTime, setSearchTime] = useState<string | number>('0')
   const [totalPages, setTotalPages] = useState<string | number>('0')
+  const [sortByRelevance, setSortByRelevance] = useState(false) // New state for checkbox
 
   useEffect(() => {
     const fetchResults = async () => {
@@ -27,7 +28,8 @@ export default function SearchResults({ query, offset, setOffset }: { query: str
         return
       }
       try {
-        const response = await fetch(`/api/search?query=${encodeURIComponent(query)}&offset=${offset}`)
+        const orderParam = sortByRelevance ? '&order=1' : '' // Add order parameter if checkbox is checked
+        const response = await fetch(`/api/search?query=${encodeURIComponent(query)}&offset=${offset}${orderParam}`)
         if (!response.ok) throw new Error(`Error: ${response.status}`)
         const data = await response.json()
         const tmpResults = [...data[0]]
@@ -53,7 +55,7 @@ export default function SearchResults({ query, offset, setOffset }: { query: str
       }
     }
     fetchResults()
-  }, [query, offset])
+  }, [query, offset, sortByRelevance]) // Add sortByRelevance to dependencies
 
   const resetResults = () => {
     setResults([])
@@ -117,6 +119,10 @@ export default function SearchResults({ query, offset, setOffset }: { query: str
 
   return (
     <>
+      <div className="mt-2 flex items-center">
+        <input type="checkbox" className="mr-2" checked={sortByRelevance} onChange={() => setSortByRelevance(!sortByRelevance)} />
+        <span className="text-gray-300">Sort based on high relevance order</span>
+      </div>
       <div className="mt-8 flex flex-col space-y-3">
         <h2 className="text-xl font-semibold text-white">Results ({loading ? '...' : results.length})</h2>
         <div className="text-sm text-gray-300">Total rows in table: {!loading ? new Intl.NumberFormat('en-US').format(Number(rowsTotal)) : '...'}</div>
@@ -137,7 +143,7 @@ export default function SearchResults({ query, offset, setOffset }: { query: str
         <div className="flex flex-row flex-wrap gap-4 md:gap-8">
           {results.map((result, idx) => (
             <Card key={idx} className="w-full max-w-[160px] border-hidden bg-transparent md:max-w-[200px]">
-              <CardContent className="space-y-3 px-0 break-all">
+              <CardContent className="space-y-3 px-0 break-words">
                 <img
                   loading="lazy"
                   id={`img_${result.data.key.replaceAll('/', '')}`}
